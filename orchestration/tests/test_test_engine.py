@@ -40,6 +40,9 @@ class TestTestEngine(unittest.TestCase):
         self.assertIn("Release Gate:", scorecard.summary)
 
     def test_individual_pillar_execution(self):
+        # The legacy static Performance pillar greps the backend source.
+        if not (self.config.backend_workspace / "package.json").exists():
+            self.skipTest(f"backend repo not found at {self.config.backend_workspace} (clone it next to this repo)")
         summary = self.engine.run_pillar(TestPillar.PERFORMANCE)
         self.assertEqual(summary.pillar, TestPillar.PERFORMANCE)
         self.assertTrue(summary.passed)
