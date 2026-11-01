@@ -10,6 +10,7 @@ Start with `make status` (are the paths and URLs right?) and `make preflight` (i
 | preflight FAIL "Backend workspace not found" / "node_modules not installed" | backend repo missing or not installed | clone it / `npm install` in it, or fix `BACKEND_WORKSPACE` |
 | preflight FAIL "Backend environment variables" | the backend has no `.env` with `MONGO_URI` and `JWT_SECRET`, and they aren't exported | create the backend's `.env` (see its README) |
 | preflight FAIL MongoDB connectivity | `mongod` not running / wrong host | start MongoDB with `--replSet rs0`; check `MONGO_URI` |
+| preflight FAIL "Target is a local backend"; API/security/performance BLOCKED with "Remote target refused" | `API_BASE_URL` (or `SECURITY_BASE_URL`) isn't localhost | point it at your local backend; only for a disposable test environment, set `ALLOW_REMOTE_TARGET=1` |
 | preflight WARN "Backend health endpoint" | backend not running on `API_BASE_URL` | `npm run dev` in the backend (your terminal), or fix `API_BASE_URL` |
 | `make check` fails right after you edited `.env` | it shouldn't: unit tests ignore `.env` | an **exported** variable leaks in: `env \| grep -E 'WORKSPACE\|RESULTS\|API_BASE'` |
 | `make check` fails on a bare clone | a test needs a sibling repo | clone the backend next to this repo; that test skips automatically if it's absent |

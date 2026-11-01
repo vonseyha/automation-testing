@@ -30,6 +30,11 @@ from orchestration.test_engine.runners.performance_runner import PerformanceRunn
 from orchestration.test_engine.runners.security_runner import SecurityAccessRunner
 from orchestration.test_engine.runners.ui_runner import UIRunner
 from orchestration.test_engine.storage import TestStorageManager
+from orchestration.test_engine.target_guard import (
+    GUARDED_RUNNERS,
+    RemoteTargetBlockedRunner,
+    remote_target_violation,
+)
 from orchestration.test_engine.pillars.ai_grounding import AIGroundingPillar
 from orchestration.test_engine.pillars.api_integration import APIIntegrationPillar
 from orchestration.test_engine.pillars.base import BasePillar
@@ -162,10 +167,21 @@ class TestEngine:
         target_runners = runner_names or list(self._runners.keys())
         results: Dict[str, TestExecutionResult] = {}
 
-        if mode == "parallel":
-            results = self._execute_parallel(target_runners, context)
-        else:
-            results = self._execute_sequential(target_runners, context)
+        # Remote-target guard: never send (data-changing) requests to a non-local
+        # backend unless ALLOW_REMOTE_TARGET=1. Guarded suites become BLOCKED.
+        guard_reason = remote_target_violation(self.config)
+        original_runners = dict(self._runners)
+        if guard_reason:
+            for name in GUARDED_RUNNERS:
+                if name in self._runners:
+                    self._runners[name] = RemoteTargetBlockedRunner(self._runners[name], guard_reason)
+        try:
+            if mode == "parallel":
+                results = self._execute_parallel(target_runners, context)
+            else:
+                results = self._execute_sequential(target_runners, context)
+        finally:
+            self._runners = original_runners
 
         runner_results_list = list(results.values())
 

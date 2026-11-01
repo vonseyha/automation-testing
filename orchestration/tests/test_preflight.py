@@ -19,7 +19,7 @@ class TestPreflightRunner(unittest.TestCase):
         config = OrchestrationConfig.load()
         runner = PreflightRunner(config)
         checks = runner.run_all()
-        self.assertEqual(len(checks), 12)
+        self.assertEqual(len(checks), 13)
         names = [c.name for c in checks]
         self.assertIn("Python runtime", names)
         self.assertIn("Node.js runtime", names)

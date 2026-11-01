@@ -69,6 +69,7 @@ class PreflightRunner:
         checks.append(self._check_backend_deps())
         checks.append(self._check_backend_env())
         checks.append(self._check_mongodb())
+        checks.append(self._check_target_is_local())
         checks.append(self._check_backend_health())
         checks.append(self._check_ui_engine())
         checks.append(self._check_jmeter())
@@ -255,6 +256,27 @@ class PreflightRunner:
             c.remediation = "Start MongoDB: brew services start mongodb-community (or docker)"
         finally:
             s.close()
+        return c
+
+    def _check_target_is_local(self) -> PreflightCheck:
+        from orchestration.test_engine.target_guard import ALLOW_ENV, remote_target_violation, remote_targets
+
+        c = PreflightCheck("Target is a local backend", "Backend", required=True)
+        remote = remote_targets({
+            "API_BASE_URL": self.config.api_base_url,
+            "SECURITY_BASE_URL": self.config.security_base_url,
+        })
+        if not remote:
+            c.status = PreflightStatus.PASS
+            c.detail = f"API_BASE_URL is local ({self.config.api_base_url})"
+        elif remote_target_violation(self.config) is None:
+            c.status = PreflightStatus.WARN
+            c.detail = f"Remote target allowed by {ALLOW_ENV}=1: {', '.join(remote)} (the API suite writes data there)"
+            c.remediation = "Only use a disposable test environment"
+        else:
+            c.status = PreflightStatus.FAIL
+            c.detail = f"Remote target refused: {', '.join(remote)}. The API suite creates and changes data"
+            c.remediation = f"Point API_BASE_URL at a local backend, or set {ALLOW_ENV}=1 for a disposable test environment"
         return c
 
     def _check_backend_health(self) -> PreflightCheck:

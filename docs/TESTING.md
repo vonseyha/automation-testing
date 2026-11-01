@@ -4,7 +4,7 @@ This repo has two kinds of tests. Keep them apart:
 
 | | **Application test catalog** | **Engine unit tests** |
 |---|---|---|
-| What | 101 checks against the TopAuto stack | 168 tests of this engine's own code |
+| What | 101 checks against the TopAuto stack | 177 tests of this engine's own code |
 | Command | `make test` / `make pillar P=…` | `make check` |
 | Needs | running backend, MongoDB, fixtures, tools | Python only |
 | Result | release-gate verdict + `results/` evidence | pass/fail (CI gate for this repo) |
@@ -92,6 +92,7 @@ Around 30 s, no services needed. They're isolated from your machine: `AUTOMATION
 | `test_ollama_client` | 6 | local model client |
 | `test_penetration_runner` | 5 | guardrail baseline, judge evaluation, evidence |
 | `test_security_provider` | 5 | security provider against a stub |
+| `test_target_guard` | 9 | local/remote host detection, opt-in, preflight check, engine blocks backend suites without sending requests |
 | others (10 modules) | 35 | config, sanitizer, contracts, model router, review loop, audit logger, Master Agent loop, orchestrator e2e, scorecard integrity, legacy pillar engine |
 
 Two tests skip on a fresh clone: the dashboard-history checks need a saved run. One more skips when the backend repo isn't next to this one: the legacy static performance check greps its source.

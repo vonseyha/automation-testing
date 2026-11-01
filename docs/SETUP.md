@@ -63,7 +63,7 @@ Open `.env` and check:
 ## 4. Offline self-check (no services needed)
 
 ```bash
-make check        # compiles every module and runs the engine's 168 unit tests (~30 s)
+make check        # compiles every module and runs the engine's 177 unit tests (~30 s)
 make status       # prints the resolved paths, URLs and tools
 make catalog      # 63 features / 101 test cases, coverage per module
 ```
@@ -91,7 +91,7 @@ cd ~/workspace/top-auto-1653-admin-page && npm start   # → http://localhost:42
 make preflight
 ```
 
-You want `VERDICT: READY`, with all 7 required checks passing. Every WARN/FAIL line has a `→` fix underneath. "Backend health endpoint: WARN" means the backend from step 5 isn't reachable on `API_BASE_URL`.
+You want `VERDICT: READY`, with all 8 required checks passing. Every WARN/FAIL line has a `→` fix underneath. "Backend health endpoint: WARN" means the backend from step 5 isn't reachable on `API_BASE_URL`.
 
 ## 7. Create the test identities (once per database)
 

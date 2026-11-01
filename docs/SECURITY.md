@@ -39,7 +39,19 @@ Never commit any of these:
 | API-AUTH-003 | triggers a password-reset request |
 | API-AUTH-005 | writes an attendance record |
 
-Several of them target fixed record IDs from the team's dev database. **Rules:**
+Several of them target fixed record IDs from the team's dev database.
+
+### Remote-target guard
+
+The engine **refuses non-local targets** by default (`test_engine/target_guard.py`):
+- If `API_BASE_URL` or `SECURITY_BASE_URL` points at a host other than `localhost`, `127.x`, `::1`, `0.0.0.0` or `*.localhost`, the connectivity, API, security and performance suites are reported **BLOCKED** ("Remote target refused"). **No request is sent.** The gate says NOT READY.
+- `make preflight` shows it as a failed **required** check, "Target is a local backend".
+- To test a **disposable** remote test environment on purpose, set `ALLOW_REMOTE_TARGET=1`. Preflight then shows a WARN, and the run proceeds.
+- The penetration and UI suites don't call the backend, so they are not affected.
+
+The guard checks the host name only. A backend on `localhost` that is really a tunnel to a shared database is still your responsibility.
+
+**Rules:**
 - Run the engine only against a **local, disposable** database: a fresh one, or a copy you can throw away.
 - **Never** point `API_BASE_URL` at staging or production.
 - After a run, expect test cars, sale letters and a cashflow transaction in the local DB. Restore your DB copy if you need clean data.

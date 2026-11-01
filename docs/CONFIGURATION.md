@@ -34,6 +34,7 @@ Later layers win:
 | `API_BASE_URL` | `http://localhost:3000` | connectivity, API, security, performance |
 | `API_HEALTH_ENDPOINT` | `/health` | health probes |
 | `SECURITY_BASE_URL` | = `API_BASE_URL` | security suite |
+| `ALLOW_REMOTE_TARGET` | unset | `1` lets the engine target a non-local backend (disposable test environments only). Without it, backend suites are BLOCKED ([SECURITY.md](SECURITY.md#remote-target-guard)) |
 | `BASE_URL` | `http://localhost:4200` | Playwright specs (admin UI) |
 | `API_URL` | `http://localhost:3000` | Playwright login helper |
 | `MONGODB_URI` | `mongodb://localhost:27017/topauto1653_ecommerce?replicaSet=rs0` | `fixtures/test-identities.js` |

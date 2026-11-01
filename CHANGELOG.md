@@ -5,6 +5,7 @@ All notable changes to this repo. Newest first.
 ## Unreleased
 
 ### Added
+- **Remote-target guard:** a non-local `API_BASE_URL` / `SECURITY_BASE_URL` makes the backend suites BLOCKED (no request sent) unless `ALLOW_REMOTE_TARGET=1`; new required preflight check "Target is a local backend" (preflight now has 13 checks, 8 required). 9 unit tests.
 - Full documentation set in `docs/`: SETUP, USER_GUIDE, ARCHITECTURE, CONFIGURATION, TESTING, DEVELOPMENT, OPERATIONS, SECURITY, TROUBLESHOOTING, DEPLOYMENT_READINESS, plus an index. `CONTRIBUTING.md` and this changelog.
 
 ### Changed

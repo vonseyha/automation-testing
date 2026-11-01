@@ -42,10 +42,11 @@ The engine reads two things from the backend repo on disk: `JWT_SECRET` from its
 | Security provider | `test_engine/security/provider.py` | The 16 security checks (local HTTP provider; Salesforce/custom-command providers are optional) |
 | Dependencies | `test_engine/dependency_engine.py` | Prerequisite DAG and topological order |
 | Gate | `test_engine/release_gate.py` | READY FOR ROLLOUT / NOT READY / VALIDATION INCOMPLETE |
+| Target guard | `test_engine/target_guard.py` | Refuses a non-local `API_BASE_URL`/`SECURITY_BASE_URL` (unless `ALLOW_REMOTE_TARGET=1`): backend suites become BLOCKED, nothing is sent |
 | Storage | `test_engine/storage.py` | Run IDs, `test_runs/<id>.json`, `evidence/<id>/…` |
 | Reporting | `test_engine/reporting.py` | Console scorecard, Markdown dashboard, history lines |
 | Catalog | `test_engine/catalog/*.py` | 63 features, 101 test cases, coverage and traceability (feature ↔ test) |
-| Preflight | `test_engine/preflight.py` | 12 environment checks (7 required) with remediation hints |
+| Preflight | `test_engine/preflight.py` | 13 environment checks (8 required, incl. the remote-target guard) with remediation hints |
 | Dashboard | `dashboard/serve.py`, `index.html` | Read-only local web UI over `RESULTS_DIR` |
 | Master Agent (optional) | `orchestrator.py`, `master_agent/`, `escalation/`, `review/`, `models/` | Gemini-driven task loop with a Pro reviewer ([ORCHESTRATION_GUIDE.md](ORCHESTRATION_GUIDE.md)) |
 | Guardrails | `security/command_policy.py`, `security/sanitizer.py`, `tools/workspace_tools.py` | Command allow/confirm/deny policy, secret redaction, workspace-bounded file and command tools |
@@ -64,6 +65,7 @@ sequenceDiagram
   participant S as Storage
   U->>E: run_real_suites(mode)
   E->>S: generate_run_id("test_engine")
+  E-->>E: remote-target guard (non-local API_BASE_URL → backend suites BLOCKED)
   E->>D: get_execution_order(runners)
   loop each runner (sequential) / up to 4 at once (parallel)
     E->>D: can_execute(runner, results so far)
@@ -191,6 +193,7 @@ Run IDs look like `test_engine_YYYYMMDD_HHMMSS_<6 hex>`. Nothing is deleted auto
 | Minted JWTs instead of UI login | Deterministic, fast, and independent of rate-limited login endpoints |
 | Results outside git | Run documents and evidence contain API responses with tenant data; they stay local |
 | Never start services | The people running the stack own its lifecycle and logs |
+| Refuse non-local targets by default | 11 API cases write data; an opt-in (`ALLOW_REMOTE_TARGET=1`) makes a remote run a deliberate choice |
 
 ## 10. Known limitations
 

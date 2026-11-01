@@ -13,7 +13,7 @@ Pre-release test engine for the TopAuto (Auto360) stack. It runs **101 checks in
 
 The core is **pure Python 3.9+ standard library** (no `pip install`). Node is used for the Playwright specs and the fixture script.
 
-> ⚠️ The API pillar **creates and changes data** (cars, sale letters, a cashflow transaction). Run it only against a **local, disposable** database. See [docs/SECURITY.md](docs/SECURITY.md).
+> ⚠️ The API pillar **creates and changes data** (cars, sale letters, a cashflow transaction). Run it only against a **local, disposable** database. The engine refuses a non-local `API_BASE_URL` unless `ALLOW_REMOTE_TARGET=1`. See [docs/SECURITY.md](docs/SECURITY.md).
 
 ## Quick start
 
@@ -21,7 +21,7 @@ The core is **pure Python 3.9+ standard library** (no `pip install`). Node is us
 # repos side by side: automation-testing/, topautokh-api/, top-auto-1653-admin-page/
 git clone https://github.com/vonseyha/automation-testing.git && cd automation-testing
 make setup          # .env from env.example, Playwright + Chromium
-make check          # offline self-test: 168 unit tests, ~30 s
+make check          # offline self-test: 177 unit tests, ~30 s
 # start MongoDB (rs0) and the backend in your own terminals, then:
 make preflight      # environment ready?
 make fixtures-apply # once per database: test tenants + platform admin → copy the printed ids into .env
