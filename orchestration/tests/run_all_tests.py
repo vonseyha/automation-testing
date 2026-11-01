@@ -16,6 +16,10 @@ workspace_root = Path(__file__).resolve().parent.parent.parent
 if str(workspace_root) not in sys.path:
     sys.path.insert(0, str(workspace_root))
 
+# discover() below imports the test modules as top-level modules, so the package
+# __init__ would not run: import it to get the offline URLs and throwaway RESULTS_DIR.
+import orchestration.tests  # noqa: E402,F401
+
 
 def run_all() -> bool:
     loader = unittest.TestLoader()

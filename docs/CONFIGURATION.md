@@ -46,6 +46,7 @@ Later layers win:
 |---|---|---|
 | `JWT_SECRET` | read from `$BACKEND_WORKSPACE/.env` | must match the running backend; never printed |
 | `TEST_BASIC_COMPANY_ID`, `TEST_BASIC_EMPLOYEE_ID` | team dev-DB ids | BASIC tenant admin (most API cases) |
+| `TEST_BASIC_PLAN_COMPANY_ID`, `TEST_BASIC_PLAN_EMPLOYEE_ID` | empty | a tenant really on the Basic plan, for the 3 "feature not in plan" cases; unset → those cases BLOCKED |
 | `TEST_PREMIUM_COMPANY_ID`, `TEST_PREMIUM_EMPLOYEE_ID` | empty | STANDARD/PREMIUM tenant (payroll/HR cases) |
 | `TEST_PREMIUM_PHONE`, `TEST_PREMIUM_PASSWORD` | empty | optional real login instead of a minted JWT |
 | `TEST_PLATFORM_COMPANY_ID`, `TEST_PLATFORM_ADMIN_ID` | empty | platform admin (`admin-auth` token) |

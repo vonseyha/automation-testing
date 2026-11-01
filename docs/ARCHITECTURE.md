@@ -141,11 +141,12 @@ The API and security suites don't log in through the UI. They mint HS256 JWTs wi
 
 | Identity | JWT `type` | IDs from | Used for |
 |---|---|---|---|
-| BASIC tenant admin | `final` | `TEST_BASIC_COMPANY_ID`, `TEST_BASIC_EMPLOYEE_ID` | most API cases |
+| BASIC tenant admin | `final` | `TEST_BASIC_COMPANY_ID`, `TEST_BASIC_EMPLOYEE_ID` (default: team dev-DB company) | most API cases, platform-admin denial cases |
+| Basic-plan tenant admin | `final` | `TEST_BASIC_PLAN_COMPANY_ID`, `TEST_BASIC_PLAN_EMPLOYEE_ID` | `entitlement_denial` cases expecting `FEATURE_NOT_IN_PLAN` |
 | STANDARD tenant admin | `final` | `TEST_PREMIUM_COMPANY_ID`, `TEST_PREMIUM_EMPLOYEE_ID` (or real login with `TEST_PREMIUM_PHONE/PASSWORD`) | cases with `requires_feature` (payroll, HR) |
 | Platform admin | `admin-auth` | `TEST_PLATFORM_COMPANY_ID`, `TEST_PLATFORM_ADMIN_ID` | cases with `requires_platform_admin` |
 
-`fixtures/test-identities.js` creates those records in a local database. A missing identity makes its cases BLOCKED with `FIXTURE_MISSING_PREMIUM_TENANT` or `FIXTURE_MISSING_PLATFORM_ADMIN`; they are never silently skipped.
+`fixtures/test-identities.js` creates those records in a local database. A missing identity makes its cases BLOCKED with `FIXTURE_MISSING_BASIC_PLAN_TENANT`, `FIXTURE_MISSING_PREMIUM_TENANT` or `FIXTURE_MISSING_PLATFORM_ADMIN`; they are never silently skipped.
 
 ## 6. Configuration resolution
 

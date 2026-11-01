@@ -20,7 +20,8 @@ Start with `make status` (are the paths and URLs right?) and `make preflight` (i
 | Symptom | Cause | Fix |
 |---|---|---|
 | `CONN-001` FAILED; API, security and performance all BLOCKED | backend unreachable | start the backend; BLOCKED is expected here, it isn't a defect |
-| API cases BLOCKED with `FIXTURE_MISSING_PREMIUM_TENANT` / `FIXTURE_MISSING_PLATFORM_ADMIN` | identity ids not set | `make fixtures-apply`, then copy the printed `TEST_*` lines into `.env` |
+| `API-ENT-PAY-001` / `-HR-001` / `-SALARY-001` FAILED: expected 403, got 200 | the company they run as isn't on the Basic plan (e.g. `TEST_BASIC_PLAN_*` points at a STANDARD/PREMIUM company) | point `TEST_BASIC_PLAN_*` at the `aaa…020` fixture company (`make fixtures-apply`) |
+| API cases BLOCKED with `FIXTURE_MISSING_BASIC_PLAN_TENANT` / `FIXTURE_MISSING_PREMIUM_TENANT` / `FIXTURE_MISSING_PLATFORM_ADMIN` | identity ids not set | `make fixtures-apply`, then copy the printed `TEST_*` lines into `.env` |
 | Most API cases 401 "Employee not found" on a fresh DB | `TEST_BASIC_*` not set, so the team dev-DB ids are used | `make fixtures-apply`; set `TEST_BASIC_COMPANY_ID` / `TEST_BASIC_EMPLOYEE_ID` |
 | 401s although fixtures exist | `JWT_SECRET` differs from the running backend's, or the DB was reset | align the secret (leave it empty to read the backend's `.env`); rerun `make fixtures-apply` |
 | 403 `EMPLOYEE_INACTIVE` | the DB has no `codedefinitions` "Employee Status → Active" row, so the fixture employee has no status | seed the backend's code definitions, run `make fixtures-cleanup` and then `make fixtures-apply` |

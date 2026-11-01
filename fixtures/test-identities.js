@@ -5,7 +5,7 @@
  * Creates (or removes) synthetic records with fixed `aaa…` ObjectIds so the
  * engine can mint JWTs for a BASIC tenant, a STANDARD tenant and a platform admin:
  *
- *   merchants     aaa000000000000000000020  BASIC test company
+ *   merchants     aaa000000000000000000020  BASIC-plan test company (entitlement-denial cases)
  *   employees     aaa000000000000000000021  ROLE ADMIN employee of that company
  *   useraccounts  aaa000000000000000000022  login account for that employee
  *   merchants     aaa000000000000000000001  STANDARD test company
@@ -102,6 +102,9 @@ async function main() {
   const existingPlatform = await col('merchants').findOne({ isPlatform: true }, { projection: { _id: 1, name: 1 } });
   const platformCompanyId = existingPlatform ? existingPlatform._id : oid(IDS.platformCompany);
   const now = new Date();
+  // The engine's default BASIC tenant is the team dev DB's "Top Auto Default" company
+  // (orchestration/config.py). When it exists, keep it: 10 API cases use its records.
+  const teamDefaultCompany = await col('merchants').findOne({ _id: oid('6a4082e590497f6ad8587dc8') }, { projection: { _id: 1 } });
 
   // Status fields are ObjectId references to lookup rows that differ per database,
   // so resolve them from the target DB instead of hard-coding ids.
@@ -219,8 +222,14 @@ async function main() {
   await client.close();
 
   console.log('\nPut these in automation-testing/.env:');
-  console.log(`TEST_BASIC_COMPANY_ID=${IDS.basicCompany}`);
-  console.log(`TEST_BASIC_EMPLOYEE_ID=${IDS.basicEmployee}`);
+  console.log(`TEST_BASIC_PLAN_COMPANY_ID=${IDS.basicCompany}`);
+  console.log(`TEST_BASIC_PLAN_EMPLOYEE_ID=${IDS.basicEmployee}`);
+  if (teamDefaultCompany) {
+    console.log('# TEST_BASIC_* left unset: this DB has the team "Top Auto Default" company, the engine default');
+  } else {
+    console.log(`TEST_BASIC_COMPANY_ID=${IDS.basicCompany}`);
+    console.log(`TEST_BASIC_EMPLOYEE_ID=${IDS.basicEmployee}`);
+  }
   console.log(`TEST_PREMIUM_COMPANY_ID=${IDS.premiumCompany}`);
   console.log(`TEST_PREMIUM_EMPLOYEE_ID=${IDS.premiumEmployee}`);
   console.log(`TEST_PLATFORM_COMPANY_ID=${platformCompanyId}`);

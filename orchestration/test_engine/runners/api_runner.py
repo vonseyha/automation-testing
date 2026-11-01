@@ -15,7 +15,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from orchestration.config import basic_company_id, basic_employee_id
+from orchestration.config import (
+    basic_company_id, basic_employee_id, basic_plan_company_id, basic_plan_employee_id,
+)
 from orchestration.security.sanitizer import sanitize_data, sanitize_text
 from orchestration.test_engine.contract import (
     BaseTestRunner,
@@ -1143,7 +1145,9 @@ class APIRunner(BaseTestRunner):
     and platform-admin validation. Token selection per test:
       - requires_feature → PREMIUM/STANDARD tenant token (when configured)
       - requires_platform_admin → platform admin token (when configured)
-      - entitlement_denial business_validation → always BASIC tenant token
+      - entitlement_denial with FEATURE_NOT_IN_PLAN → Basic-plan tenant token
+        (TEST_BASIC_PLAN_*); BLOCKED when not configured
+      - other entitlement_denial cases → BASIC tenant token
       - everything else → default admin token (BASIC tenant)
 
     Rate-limit isolation: uses unique session-scoped phone numbers for login
@@ -1279,6 +1283,21 @@ class APIRunner(BaseTestRunner):
             secret, target_id, basic_company_id(),
             token_type="final", role="ROLE ADMIN",
         )
+
+    def _get_basic_plan_token(self) -> str:
+        """
+        JWT for a tenant that is really on the Basic plan (TEST_BASIC_PLAN_*).
+        Used by the FEATURE_NOT_IN_PLAN cases. Empty when not configured.
+        """
+        if hasattr(self, "_cached_basic_plan_token"):
+            return self._cached_basic_plan_token
+        company_id, employee_id = basic_plan_company_id(), basic_plan_employee_id()
+        secret = self._read_jwt_secret() if company_id and employee_id else ""
+        self._cached_basic_plan_token = (
+            self._sign_jwt(secret, employee_id, company_id, token_type="final", role="ROLE ADMIN")
+            if secret else ""
+        )
+        return self._cached_basic_plan_token
 
     def _get_premium_token(self) -> str:
         """
@@ -1443,7 +1462,7 @@ class APIRunner(BaseTestRunner):
 
     def _select_token_for_case(
         self, case_def: Dict[str, Any], basic_token: str,
-        premium_token: str, platform_token: str,
+        premium_token: str, platform_token: str, basic_plan_token: str = "",
     ) -> Tuple[str, Optional[str]]:
         """
         Selects the appropriate JWT for a test case based on its metadata.
@@ -1453,6 +1472,10 @@ class APIRunner(BaseTestRunner):
         v_type = b_val.get("type", "")
 
         if v_type == "entitlement_denial":
+            if b_val.get("expected_code", "FEATURE_NOT_IN_PLAN") == "FEATURE_NOT_IN_PLAN":
+                if basic_plan_token:
+                    return basic_plan_token, None
+                return "", "FIXTURE_MISSING_BASIC_PLAN_TENANT"
             return basic_token, None
 
         if v_type == "rate_limit_or_validation":
@@ -1474,12 +1497,19 @@ class APIRunner(BaseTestRunner):
         """Returns a summary of multi-identity fixture availability."""
         premium_token = self._get_premium_token()
         platform_token = self._get_platform_admin_token()
+        basic_plan_token = self._get_basic_plan_token()
         return {
             "basic_tenant": {
                 "configured": True,
                 "company_id": basic_company_id(),
                 "plan": "BASIC",
                 "features": ["dealership.operations", "reporting"],
+            },
+            "basic_plan_tenant": {
+                "configured": bool(basic_plan_token),
+                "company_id": basic_plan_company_id(),
+                "plan": "BASIC (entitlement-denial cases)",
+                "env_vars": ["TEST_BASIC_PLAN_COMPANY_ID", "TEST_BASIC_PLAN_EMPLOYEE_ID"],
             },
             "premium_tenant": {
                 "configured": bool(premium_token),
@@ -1867,6 +1897,7 @@ class APIRunner(BaseTestRunner):
         admin_token = self._get_admin_token()
         premium_token = self._get_premium_token()
         platform_token = self._get_platform_admin_token()
+        basic_plan_token = self._get_basic_plan_token()
         session_vin = f"TEST-VIN-{int(time.time() * 1000)}"
         created_car_id = None
         created_sale_letter_id = None
@@ -1885,7 +1916,7 @@ class APIRunner(BaseTestRunner):
             headers = dict(raw_headers)
 
             selected_token, fixture_gap = self._select_token_for_case(
-                case_def, admin_token, premium_token, platform_token,
+                case_def, admin_token, premium_token, platform_token, basic_plan_token,
             )
             if "Authorization" in headers and "admin-test-token" in headers["Authorization"]:
                 headers["Authorization"] = f"Bearer {selected_token}"
@@ -2027,10 +2058,21 @@ class APIRunner(BaseTestRunner):
             c_error = None
             req_action = None
 
-            if fixture_gap and raw_res["status_code"] in (403, None):
+            if fixture_gap and (
+                raw_res["status_code"] in (403, None)
+                or fixture_gap == "FIXTURE_MISSING_BASIC_PLAN_TENANT"
+            ):
                 passed = False
                 c_status = TestStatus.BLOCKED
-                if fixture_gap == "FIXTURE_MISSING_PREMIUM_TENANT":
+                if fixture_gap == "FIXTURE_MISSING_BASIC_PLAN_TENANT":
+                    c_error = "Basic-plan test tenant not configured"
+                    blocking_dep = "Test company on the BASIC plan (subscriptionPackage='BASIC')"
+                    missing_cfg = "Set TEST_BASIC_PLAN_COMPANY_ID and TEST_BASIC_PLAN_EMPLOYEE_ID env vars"
+                    remediation = (
+                        "Run `make fixtures-apply` and copy the printed TEST_BASIC_PLAN_* lines "
+                        "into automation-testing/.env"
+                    )
+                elif fixture_gap == "FIXTURE_MISSING_PREMIUM_TENANT":
                     feature = case_def.get("requires_feature", "unknown")
                     c_error = f"PREMIUM test tenant not configured; feature '{feature}' requires STANDARD+ plan"
                     blocking_dep = f"Test company on STANDARD/PREMIUM plan with '{feature}' feature"

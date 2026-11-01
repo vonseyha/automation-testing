@@ -11,6 +11,9 @@ from orchestration.core_types import ThinkingLevel
 
 class TestOrchestrationConfig(unittest.TestCase):
     def test_default_config(self):
+        # The test package points API_BASE_URL at a closed port; check the real default here.
+        saved = {k: os.environ.pop(k, None) for k in ("API_BASE_URL", "SECURITY_BASE_URL")}
+        self.addCleanup(lambda: [os.environ.__setitem__(k, v) for k, v in saved.items() if v is not None])
         config = OrchestrationConfig.load()
         self.assertEqual(config.primary_model, "gemini-3.8-flash")
         self.assertEqual(config.primary_thinking_level, ThinkingLevel.HIGH)

@@ -21,7 +21,7 @@ The core is **pure Python 3.9+ standard library** (no `pip install`). Node is us
 # repos side by side: automation-testing/, topautokh-api/, top-auto-1653-admin-page/
 git clone https://github.com/vonseyha/automation-testing.git && cd automation-testing
 make setup          # .env from env.example, Playwright + Chromium
-make check          # offline self-test: 177 unit tests, ~30 s
+make check          # offline self-test: 183 unit tests, ~30 s
 # start MongoDB (rs0) and the backend in your own terminals, then:
 make preflight      # environment ready?
 make fixtures-apply # once per database: test tenants + platform admin → copy the printed ids into .env

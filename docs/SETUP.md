@@ -95,7 +95,7 @@ You want `VERDICT: READY`, with all 8 required checks passing. Every WARN/FAIL l
 
 ## 7. Create the test identities (once per database)
 
-The API and security pillars sign JWTs for three identities: a **BASIC tenant** admin, a **STANDARD tenant** admin and a **platform admin**. Create them in your **local** database:
+The API and security pillars sign JWTs for four identities: the **BASIC tenant** admin (most cases), a **Basic-plan tenant** admin (the 3 cases that check payroll/HR are refused on the Basic plan), a **STANDARD tenant** admin and a **platform admin**. Create them in your **local** database:
 
 ```bash
 make fixtures          # dry run: shows which records exist / are missing
@@ -105,15 +105,17 @@ make fixtures-apply    # creates the missing ones (idempotent, fixed aaa… Obje
 Copy the printed lines into `.env`:
 
 ```
-TEST_BASIC_COMPANY_ID=aaa000000000000000000020
-TEST_BASIC_EMPLOYEE_ID=aaa000000000000000000021
+TEST_BASIC_PLAN_COMPANY_ID=aaa000000000000000000020
+TEST_BASIC_PLAN_EMPLOYEE_ID=aaa000000000000000000021
 TEST_PREMIUM_COMPANY_ID=aaa000000000000000000001
 TEST_PREMIUM_EMPLOYEE_ID=aaa000000000000000000002
 TEST_PLATFORM_COMPANY_ID=aaa000000000000000000010   # or your existing isPlatform company
 TEST_PLATFORM_ADMIN_ID=aaa000000000000000000011
 ```
 
-If `TEST_BASIC_*` is left empty, the engine falls back to the "Top Auto Default" company of the team's dev database. That only works if your DB is a copy of it.
+`TEST_BASIC_*` (the general tenant) defaults to the "Top Auto Default" company of the team's dev database, because 10 API cases use its records. The script prints `TEST_BASIC_COMPANY_ID` / `TEST_BASIC_EMPLOYEE_ID` lines only when your DB doesn't have that company (a fresh DB); then use the `aaa…020` / `aaa…021` ids for both.
+
+`TEST_BASIC_PLAN_*` must point at a company whose `subscriptionPackage` is really `BASIC`. It is separate because "Top Auto Default" may be on a higher plan. When it's unset, the 3 `API-ENT-*-001` plan cases are BLOCKED with `FIXTURE_MISSING_BASIC_PLAN_TENANT`.
 
 The script refuses non-localhost MongoDB URIs unless `ALLOW_REMOTE_FIXTURES=1` is set. `make fixtures-cleanup` removes the records again. It keeps the platform company, because the app may depend on it; add `--include-platform` to delete that too.
 

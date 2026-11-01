@@ -4,7 +4,7 @@ This repo has two kinds of tests. Keep them apart:
 
 | | **Application test catalog** | **Engine unit tests** |
 |---|---|---|
-| What | 101 checks against the TopAuto stack | 177 tests of this engine's own code |
+| What | 101 checks against the TopAuto stack | 183 tests of this engine's own code |
 | Command | `make test` / `make pillar P=…` | `make check` |
 | Needs | running backend, MongoDB, fixtures, tools | Python only |
 | Result | release-gate verdict + `results/` evidence | pass/fail (CI gate for this repo) |
@@ -75,7 +75,11 @@ Every result records `expected`, `actual`, `evidence` and, when it isn't PASSED,
 make check      # python -m compileall + node --check fixtures + orchestration/tests/run_all_tests.py
 ```
 
-Around 30 s, no services needed. They're isolated from your machine: `AUTOMATION_SKIP_ENV_FILE=1`, and tests that build a config pass `workspace_root`/`results_dir` pointing at a temp dir. Local HTTP stubs replace the backend.
+Around 30 s, no services needed, and safe to run while your backend is up. They're isolated from your machine (`orchestration/tests/__init__.py`):
+- `AUTOMATION_SKIP_ENV_FILE=1`: your `.env` is ignored.
+- `API_BASE_URL` / `SECURITY_BASE_URL` point at a closed port (`127.0.0.1:9`), so no test can reach a live backend.
+- `RESULTS_DIR` is a temp folder deleted at exit, so no stub run lands in `results/` or on the dashboard.
+- Local HTTP stubs replace the backend where a test needs responses.
 
 | Module | Tests | Covers |
 |---|---:|---|
@@ -93,6 +97,7 @@ Around 30 s, no services needed. They're isolated from your machine: `AUTOMATION
 | `test_penetration_runner` | 5 | guardrail baseline, judge evaluation, evidence |
 | `test_security_provider` | 5 | security provider against a stub |
 | `test_target_guard` | 9 | local/remote host detection, opt-in, preflight check, engine blocks backend suites without sending requests |
+| `test_entitlement_identity` | 6 | "feature not in plan" cases use the Basic-plan tenant, are BLOCKED without it; platform-denial cases keep the BASIC tenant |
 | others (10 modules) | 35 | config, sanitizer, contracts, model router, review loop, audit logger, Master Agent loop, orchestrator e2e, scorecard integrity, legacy pillar engine |
 
 Two tests skip on a fresh clone: the dashboard-history checks need a saved run. One more skips when the backend repo isn't next to this one: the legacy static performance check greps its source.

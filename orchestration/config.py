@@ -112,6 +112,18 @@ def basic_employee_id() -> str:
     return os.environ.get("TEST_BASIC_EMPLOYEE_ID") or DEFAULT_BASIC_EMPLOYEE_ID
 
 
+# Tenant that is really on the Basic plan, used only by the entitlement-denial
+# cases (FEATURE_NOT_IN_PLAN). Kept separate from the BASIC tenant above because
+# the team's "Top Auto Default" company may be on a higher plan. No default:
+# `node fixtures/test-identities.js --apply` creates one (aaa…020 / aaa…021).
+def basic_plan_company_id() -> str:
+    return os.environ.get("TEST_BASIC_PLAN_COMPANY_ID", "")
+
+
+def basic_plan_employee_id() -> str:
+    return os.environ.get("TEST_BASIC_PLAN_EMPLOYEE_ID", "")
+
+
 @dataclass
 class OrchestrationConfig:
     primary_model: str = "gemini-3.8-flash"
