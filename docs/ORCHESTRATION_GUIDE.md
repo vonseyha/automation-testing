@@ -1,6 +1,6 @@
 # Master Agent + Specialist Reviewer Orchestration Guide
 
-> **automation-testing repo:** start with the [README](../README.md) for setup. Commands below run from the repo root (`bin/orchestrator <cmd>` = `python3 -m orchestration <cmd>`). Results go to `results/` (or `RESULTS_DIR`), not `.antigravity/`.
+> **automation-testing repo:** setup is in [SETUP.md](SETUP.md); the engine architecture is in [ARCHITECTURE.md](ARCHITECTURE.md). Commands below run from the repo root (`bin/orchestrator <cmd>` = `python3 -m orchestration <cmd>`). Results go to `results/` (or `RESULTS_DIR`), not `.antigravity/`.
 
 ## 1. Overview & Mission
 

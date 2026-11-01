@@ -1,6 +1,6 @@
 # automation-testing: notes for AI coding tools
 
-- Setup and usage: `README.md`. Engine internals: `docs/ENGINE_REFERENCE.md`.
+- Docs index: `docs/README.md`. Setup: `docs/SETUP.md`. Internals: `docs/ARCHITECTURE.md`. How to extend: `docs/DEVELOPMENT.md`. Update the matching doc + `CHANGELOG.md` with every behavior change.
 - Python 3.9+ standard library only. Don't add pip dependencies without a strong reason.
 - Verify every change with `make check` (compile + 168 unit tests, ~30 s, no services needed).
 - Paths: `ENGINE_ROOT` = this repo; `WORKSPACE_ROOT` = folder with the sibling repos (default: parent dir); `RESULTS_DIR` = run output (default `results/`, gitignored). Engine-owned files (`orchestration/performance`, `orchestration/ui_tests`) resolve from the package, never from `WORKSPACE_ROOT`.

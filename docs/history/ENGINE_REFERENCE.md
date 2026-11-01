@@ -1,6 +1,6 @@
 # AutoPilot — 6-Pillar Pre-Production Validation Engine
 
-> **automation-testing repo:** start with the [README](../README.md) for setup. Commands below run from the repo root (`bin/orchestrator <cmd>` = `python3 -m orchestration <cmd>`). Results go to `results/` (or `RESULTS_DIR`), not `.antigravity/`.
+> **Historical document** (written inside the TopAuto workspace, Sept–Oct 2026). The current docs are in [docs/](../README.md) and win where they disagree. Paths were updated for this repo; counts and examples are from that period.
 
 AutoPilot is the orchestration layer that validates the Top Auto 1653 application before every release. It coordinates real test runners across six quality pillars, enforces a dependency DAG between suites, persists evidence to disk, evaluates a release gate, and generates human-readable dashboards — all locally, with no cloud dependency.
 
