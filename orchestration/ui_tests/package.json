@@ -1,0 +1,11 @@
+{
+  "name": "topauto-ui-tests",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "test:list": "npx playwright test --list"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}

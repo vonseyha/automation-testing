@@ -1,0 +1,26 @@
+# Local settings and secrets (copy env.example to .env)
+.env
+.env.*
+!env.example
+
+# Run output: test runs, evidence, audit logs
+results/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node / Playwright
+node_modules/
+orchestration/ui_tests/playwright-report/
+orchestration/ui_tests/test-results/
+orchestration/ui_tests/blob-report/
+
+# Tools
+*.log
+*.jtl
+.DS_Store
+.idea/
+.vscode/

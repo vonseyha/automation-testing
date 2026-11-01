@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoPilot Dashboard</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-hover: #22262f;
+  --border: #2a2e3a;
+  --text: #e4e6eb;
+  --text-muted: #8b8f9a;
+  --text-dim: #5c6170;
+  --accent: #6c8cff;
+  --accent-dim: #3d5099;
+  --pass: #34d399;
+  --pass-bg: rgba(52, 211, 153, 0.1);
+  --fail: #f87171;
+  --fail-bg: rgba(248, 113, 113, 0.1);
+  --blocked: #fbbf24;
+  --blocked-bg: rgba(251, 191, 36, 0.1);
+  --skipped: #8b8f9a;
+  --pending: #60a5fa;
+  --ready: #34d399;
+  --not-ready: #f87171;
+  --incomplete: #fbbf24;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f6f8;
+    --bg-card: #ffffff;
+    --bg-hover: #f0f1f4;
+    --border: #d8dbe3;
+    --text: #1a1d27;
+    --text-muted: #5c6170;
+    --text-dim: #8b8f9a;
+    --accent: #4a6cf7;
+    --accent-dim: #c5d0ff;
+    --pass: #059669;
+    --pass-bg: rgba(5, 150, 105, 0.08);
+    --fail: #dc2626;
+    --fail-bg: rgba(220, 38, 38, 0.08);
+    --blocked: #d97706;
+    --blocked-bg: rgba(217, 119, 6, 0.08);
+    --skipped: #6b7280;
+    --pending: #2563eb;
+    --ready: #059669;
+    --not-ready: #dc2626;
+    --incomplete: #d97706;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-hover: #22262f;
+  --border: #2a2e3a;
+  --text: #e4e6eb;
+  --text-muted: #8b8f9a;
+  --text-dim: #5c6170;
+  --accent: #6c8cff;
+  --accent-dim: #3d5099;
+  --pass: #34d399;
+  --pass-bg: rgba(52, 211, 153, 0.1);
+  --fail: #f87171;
+  --fail-bg: rgba(248, 113, 113, 0.1);
+  --blocked: #fbbf24;
+  --blocked-bg: rgba(251, 191, 36, 0.1);
+  --skipped: #8b8f9a;
+  --pending: #60a5fa;
+  --ready: #34d399;
+  --not-ready: #f87171;
+  --incomplete: #fbbf24;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+header h1 span { color: var(--accent); }
+
+.header-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+/* Navigation tabs */
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 3px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.tab:hover { color: var(--text); background: var(--bg-hover); }
+.tab.active { color: var(--text); background: var(--bg); box-shadow: var(--shadow); }
+
+/* Cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.card-value {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: var(--mono);
+  line-height: 1.2;
+}
+
+.card-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badge-pass { color: var(--pass); background: var(--pass-bg); }
+.badge-fail { color: var(--fail); background: var(--fail-bg); }
+.badge-blocked { color: var(--blocked); background: var(--blocked-bg); }
+.badge-skipped { color: var(--skipped); background: rgba(139,143,154,0.1); }
+.badge-pending { color: var(--pending); background: rgba(96,165,250,0.1); }
+.badge-ready { color: var(--ready); background: var(--pass-bg); }
+.badge-not-ready { color: var(--not-ready); background: var(--fail-bg); }
+.badge-incomplete { color: var(--incomplete); background: var(--blocked-bg); }
+.badge-unknown { color: var(--text-muted); background: rgba(139,143,154,0.1); }
+
+/* Gate banner */
+.gate-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gate-banner .gate-status {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+
+.gate-banner .gate-detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+/* Tables */
+.table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.table-title {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-hover); }
+
+td.mono { font-family: var(--mono); font-size: 12px; }
+td.num { text-align: right; font-family: var(--mono); font-size: 12px; }
+td.clickable { cursor: pointer; color: var(--accent); }
+td.clickable:hover { text-decoration: underline; }
+
+.text-pass { color: var(--pass); }
+.text-fail { color: var(--fail); }
+.text-blocked { color: var(--blocked); }
+.text-muted { color: var(--text-muted); }
+
+/* Progress bar */
+.progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+}
+
+.progress-bar .seg-pass { background: var(--pass); }
+.progress-bar .seg-fail { background: var(--fail); }
+.progress-bar .seg-blocked { background: var(--blocked); }
+
+/* Search + filters */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 7px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+}
+
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-dim); }
+
+.filter-btn {
+  padding: 7px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* Sections */
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Empty / error states */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.empty-state p { font-size: 13px; max-width: 400px; margin: 0 auto; }
+.empty-state code {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: var(--bg);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Detail panel */
+.detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  border: none;
+  background: none;
+  font-family: var(--font);
+}
+
+.detail-back:hover { text-decoration: underline; }
+
+.detail-header {
+  margin-bottom: 20px;
+}
+
+.detail-header h2 {
+  font-size: 16px;
+  font-family: var(--mono);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.finding-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.finding-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.finding-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 2px 0;
+}
+
+.finding-card .label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Tooltip */
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .gate-banner { flex-direction: column; align-items: flex-start; }
+  header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span>AutoPilot</span> Dashboard</h1>
+    <div class="header-meta" id="header-meta">Loading...</div>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-view="overview">Overview</button>
+    <button class="tab" data-view="pillars">Pillars</button>
+    <button class="tab" data-view="gate">Release Gate</button>
+    <button class="tab" data-view="history">Run History</button>
+    <button class="tab" data-view="findings">Findings</button>
+  </div>
+
+  <div id="app">
+    <div class="loading"><div class="spinner"></div><br>Loading test data...</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  // --- State ---
+  let runs = [];
+  let currentRun = null;
+  let currentView = "overview";
+  let detailRunId = null;
+  let searchQuery = "";
+  let statusFilter = "all";
+  let pillarFilter = "all";
+
+  const PILLAR_MAP = {
+    api_connectivity: "API & Integration",
+    api_integration: "API & Integration",
+    ui_channel: "UI & Channel",
+    performance: "Performance",
+    security_access: "Security & Access",
+    penetration: "Penetration Check",
+    ai_grounding: "AI Grounding",
+  };
+
+  const PILLAR_ORDER = [
+    "API & Integration",
+    "UI & Channel",
+    "Performance",
+    "Security & Access",
+    "Penetration Check",
+    "AI Grounding",
+  ];
+
+  const REQUIRED_SUITES = ["api_integration", "security_access", "penetration"];
+
+  // --- Helpers ---
+  function esc(str) {
+    if (!str) return "";
+    const d = document.createElement("div");
+    d.textContent = String(str);
+    return d.innerHTML;
+  }
+
+  function formatDuration(ms) {
+    if (!ms || ms <= 0) return "—";
+    if (ms < 1000) return ms.toFixed(1) + "ms";
+    if (ms < 60000) return (ms / 1000).toFixed(1) + "s";
+    return (ms / 60000).toFixed(1) + "m";
+  }
+
+  function formatTime(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, {
+        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit",
+      });
+    } catch { return iso; }
+  }
+
+  function statusBadge(status) {
+    const s = String(status).toUpperCase();
+    const cls = {
+      PASSED: "badge-pass", FAILED: "badge-fail", BLOCKED: "badge-blocked",
+      SKIPPED: "badge-skipped", PENDING: "badge-pending",
+      "READY FOR ROLLOUT": "badge-ready", "NOT READY": "badge-not-ready",
+      "VALIDATION INCOMPLETE": "badge-incomplete",
+    }[s] || "badge-unknown";
+    return '<span class="badge ' + cls + '">' + esc(s) + "</span>";
+  }
+
+  function gateBadge(status) {
+    const s = String(status).toUpperCase();
+    const cls = {
+      "READY FOR ROLLOUT": "badge-ready",
+      "NOT READY": "badge-not-ready",
+      "VALIDATION INCOMPLETE": "badge-incomplete",
+    }[s] || "badge-unknown";
+    return '<span class="badge ' + cls + '">' + esc(s) + "</span>";
+  }
+
+  function progressBar(passed, failed, blocked, total) {
+    if (total <= 0) return '<div class="progress-bar"></div>';
+    const p = (passed / total * 100).toFixed(1);
+    const f = (failed / total * 100).toFixed(1);
+    const b = (blocked / total * 100).toFixed(1);
+    return '<div class="progress-bar">' +
+      '<div class="seg-pass" style="width:' + p + '%"></div>' +
+      '<div class="seg-fail" style="width:' + f + '%"></div>' +
+      '<div class="seg-blocked" style="width:' + b + '%"></div>' +
+      '</div>';
+  }
+
+  function getAllTestCases(run) {
+    if (!run) return [];
+    const summary = run.summary || run.test_run_summary || {};
+    if (summary.test_cases && summary.test_cases.length > 0) return summary.test_cases;
+    const cases = [];
+    for (const r of (run.results || [])) {
+      const rObj = typeof r === "object" ? r : {};
+      for (const tc of (rObj.test_cases || [])) {
+        cases.push(tc);
+      }
+    }
+    return cases;
+  }
+
+  function getPillarCases(run) {
+    const cases = getAllTestCases(run);
+    const pillars = {};
+    for (const p of PILLAR_ORDER) pillars[p] = [];
+    for (const tc of cases) {
+      const pillar = tc.test_pillar || PILLAR_MAP[tc.runner] || "Unknown";
+      if (!pillars[pillar]) pillars[pillar] = [];
+      pillars[pillar].push(tc);
+    }
+    return pillars;
+  }
+
+  function getRunnerResults(run) {
+    if (!run || !run.results) return [];
+    return Array.isArray(run.results) ? run.results : Object.values(run.results);
+  }
+
+  function getSummary(run) {
+    return run.summary || run.test_run_summary || {};
+  }
+
+  // --- API ---
+  async function fetchRuns() {
+    try {
+      const res = await fetch("/api/runs?limit=100");
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
+  }
+
+  async function fetchRunDetail(runId) {
+    try {
+      const res = await fetch("/api/runs/" + encodeURIComponent(runId));
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
+  }
+
+  // --- Render ---
+  const $app = document.getElementById("app");
+  const $meta = document.getElementById("header-meta");
+
+  function render() {
+    if (detailRunId) {
+      renderDetail();
+      return;
+    }
+    switch (currentView) {
+      case "overview": renderOverview(); break;
+      case "pillars": renderPillars(); break;
+      case "gate": renderGate(); break;
+      case "history": renderHistory(); break;
+      case "findings": renderFindings(); break;
+      default: renderOverview();
+    }
+  }
+
+  function renderOverview() {
+    if (!currentRun) {
+      $app.innerHTML = emptyState("No test runs found", "Run the test suite to generate data:", "python3 -m orchestration.cli test");
+      return;
+    }
+    const s = getSummary(currentRun);
+    const status = currentRun.overall_status || "UNKNOWN";
+    const total = s.total_test_cases || 0;
+    const executed = s.executed_test_cases || 0;
+    const passed = s.passed_test_cases || 0;
+    const failed = s.failed_test_cases || 0;
+    const blocked = s.blocked_test_cases || 0;
+    const skipped = s.skipped_test_cases || 0;
+    const passRate = s.pass_rate || 0;
+    const duration = s.total_duration_ms || 0;
+
+    let html = '<div class="gate-banner">';
+    html += '<div class="gate-status">' + gateBadge(status) + "</div>";
+    html += '<div class="gate-detail">';
+    html += "Run <strong>" + esc(currentRun.test_run_id) + "</strong>";
+    html += " &middot; " + esc(formatTime(currentRun.started_at));
+    html += " &middot; " + esc(formatDuration(duration));
+    html += "</div></div>";
+
+    html += '<div class="cards">';
+    html += metricCard("Total Tests", total, "application test cases");
+    html += metricCard("Passed", passed, passRate.toFixed(1) + "% of executed", "text-pass");
+    html += metricCard("Failed", failed, failed > 0 ? "requires attention" : "none", failed > 0 ? "text-fail" : "");
+    html += metricCard("Blocked", blocked, blocked > 0 ? "prerequisites missing" : "none", blocked > 0 ? "text-blocked" : "");
+    html += metricCard("Skipped", skipped);
+    html += metricCard("Executed", executed, (s.execution_rate || 0).toFixed(1) + "% execution rate");
+    html += metricCard("Duration", formatDuration(duration), "total elapsed");
+    html += metricCard("Pass Rate", passRate.toFixed(1) + "%", "of executed tests");
+    html += "</div>";
+
+    html += progressBar(passed, failed, blocked, total);
+    html += "<br>";
+
+    // Pillar summary table
+    html += pillarSummaryTable(currentRun);
+
+    // Unit test note
+    html += '<div class="card" style="margin-top:12px;padding:12px 16px">';
+    html += '<div class="card-label">Orchestration Unit Tests (Engine Suite)</div>';
+    html += '<div style="font-size:13px">144 internal unit tests verify the test engine framework itself. ';
+    html += 'These are <strong>not</strong> counted in the application test totals above.</div>';
+    html += '<div style="font-size:12px;color:var(--text-muted);margin-top:4px">';
+    html += 'Run: <code>python3 orchestration/tests/run_all_tests.py</code></div>';
+    html += "</div>";
+
+    $app.innerHTML = html;
+  }
+
+  function renderPillars() {
+    if (!currentRun) {
+      $app.innerHTML = emptyState("No test runs found", "Run the test suite to generate pillar data:", "python3 -m orchestration.cli test");
+      return;
+    }
+
+    const pillarCases = getPillarCases(currentRun);
+
+    let html = '<div class="toolbar">';
+    html += '<input type="text" class="search-input" placeholder="Search test ID or name..." id="pillar-search" value="' + esc(searchQuery) + '">';
+    html += filterButton("all", "All");
+    html += filterButton("PASSED", "Passed");
+    html += filterButton("FAILED", "Failed");
+    html += filterButton("BLOCKED", "Blocked");
+    html += "</div>";
+
+    for (const pillar of PILLAR_ORDER) {
+      const cases = (pillarCases[pillar] || []).filter(filterCase);
+      if (cases.length === 0 && searchQuery) continue;
+
+      const passed = cases.filter(c => status(c) === "PASSED").length;
+      const failed = cases.filter(c => status(c) === "FAILED").length;
+      const blocked = cases.filter(c => status(c) === "BLOCKED").length;
+
+      html += '<div class="table-wrap">';
+      html += '<div class="table-title">' + esc(pillar);
+      html += ' <span style="font-weight:400;font-size:12px;color:var(--text-muted)">';
+      html += cases.length + " tests";
+      if (passed) html += ' &middot; <span class="text-pass">' + passed + " passed</span>";
+      if (failed) html += ' &middot; <span class="text-fail">' + failed + " failed</span>";
+      if (blocked) html += ' &middot; <span class="text-blocked">' + blocked + " blocked</span>";
+      html += "</span></div>";
+
+      if (cases.length === 0) {
+        html += '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">';
+        html += searchQuery ? "No matching tests" : "No test cases in this pillar";
+        html += "</div>";
+      } else {
+        html += "<table><thead><tr>";
+        html += "<th>ID</th><th>Test Name</th><th>Status</th><th>Duration</th><th>Details</th>";
+        html += "</tr></thead><tbody>";
+        for (const tc of cases) {
+          const st = status(tc);
+          const dur = (st === "PASSED" || st === "FAILED") ? formatDuration(tc.duration_ms) : "—";
+          const detail = tc.details || tc.description || "";
+          html += "<tr>";
+          html += '<td class="mono">' + esc(tc.test_case_id) + "</td>";
+          html += "<td>" + esc(tc.test_name) + "</td>";
+          html += "<td>" + statusBadge(st) + "</td>";
+          html += '<td class="num">' + esc(dur) + "</td>";
+          html += "<td>" + esc(detail.length > 80 ? detail.substring(0, 77) + "..." : detail) + "</td>";
+          html += "</tr>";
+        }
+        html += "</tbody></table>";
+      }
+      html += "</div>";
+    }
+
+    $app.innerHTML = html;
+    bindPillarSearch();
+  }
+
+  function renderGate() {
+    if (!currentRun) {
+      $app.innerHTML = emptyState("No release gate data", "Run the test suite:", "python3 -m orchestration.cli test");
+      return;
+    }
+
+    const gateStatus = currentRun.overall_status || "UNKNOWN";
+    const runners = getRunnerResults(currentRun);
+
+    let html = '<div class="gate-banner">';
+    html += '<div class="gate-status">' + gateBadge(gateStatus) + "</div>";
+    html += '<div class="gate-detail">';
+    if (gateStatus === "READY FOR ROLLOUT") {
+      html += "All required suites passed with evidence. Safe to deploy.";
+    } else if (gateStatus === "NOT READY") {
+      html += "One or more required suites failed or are blocked. Deployment is not recommended.";
+    } else if (gateStatus === "VALIDATION INCOMPLETE") {
+      html += "Required suites have not all been executed. Run the full suite.";
+    } else {
+      html += "Gate status could not be determined.";
+    }
+    html += "</div></div>";
+
+    // Required suites
+    html += '<div class="section"><div class="section-title">Required Suites</div>';
+    html += '<div class="table-wrap"><table><thead><tr>';
+    html += "<th>Suite</th><th>Status</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Duration</th>";
+    html += "</tr></thead><tbody>";
+
+    for (const req of REQUIRED_SUITES) {
+      const r = runners.find(x => x.test_type === req);
+      if (r) {
+        const cases = r.test_cases || [];
+        const p = cases.filter(c => status(c) === "PASSED").length;
+        const f = cases.filter(c => status(c) === "FAILED").length;
+        html += "<tr>";
+        html += "<td><strong>" + esc(req) + "</strong></td>";
+        html += "<td>" + statusBadge(r.status) + "</td>";
+        html += '<td class="num">' + cases.length + "</td>";
+        html += '<td class="num text-pass">' + p + "</td>";
+        html += '<td class="num' + (f > 0 ? " text-fail" : "") + '">' + f + "</td>";
+        html += '<td class="num">' + formatDuration(r.duration_ms) + "</td>";
+        html += "</tr>";
+      } else {
+        html += "<tr>";
+        html += "<td><strong>" + esc(req) + "</strong></td>";
+        html += "<td>" + statusBadge("PENDING") + "</td>";
+        html += '<td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td>';
+        html += "</tr>";
+      }
+    }
+    html += "</tbody></table></div></div>";
+
+    // Optional suites
+    const optionalRunners = runners.filter(r => !REQUIRED_SUITES.includes(r.test_type) && r.test_type !== "api_connectivity");
+    html += '<div class="section"><div class="section-title">Optional Suites (Informational)</div>';
+    html += '<div class="table-wrap"><table><thead><tr>';
+    html += "<th>Suite</th><th>Status</th><th>Tests</th><th>Passed</th><th>Blocked</th><th>Duration</th>";
+    html += "</tr></thead><tbody>";
+
+    for (const r of optionalRunners) {
+      const cases = r.test_cases || [];
+      const p = cases.filter(c => status(c) === "PASSED").length;
+      const b = cases.filter(c => status(c) === "BLOCKED").length;
+      html += "<tr>";
+      html += "<td>" + esc(r.test_type) + "</td>";
+      html += "<td>" + statusBadge(r.status) + "</td>";
+      html += '<td class="num">' + cases.length + "</td>";
+      html += '<td class="num text-pass">' + p + "</td>";
+      html += '<td class="num' + (b > 0 ? " text-blocked" : "") + '">' + b + "</td>";
+      html += '<td class="num">' + formatDuration(r.duration_ms) + "</td>";
+      html += "</tr>";
+    }
+
+    // Include connectivity as infrastructure
+    const conn = runners.find(r => r.test_type === "api_connectivity");
+    if (conn) {
+      html += "<tr>";
+      html += "<td>" + esc(conn.test_type) + ' <span style="font-size:11px;color:var(--text-dim)">(infrastructure)</span></td>';
+      html += "<td>" + statusBadge(conn.status) + "</td>";
+      html += '<td class="num">' + (conn.test_cases || []).length + "</td>";
+      html += '<td class="num">—</td><td class="num">—</td>';
+      html += '<td class="num">' + formatDuration(conn.duration_ms) + "</td>";
+      html += "</tr>";
+    }
+
+    html += "</tbody></table></div></div>";
+
+    // Blocking reasons / warnings
+    const summary = getSummary(currentRun);
+    const reasons = [];
+    const warnings = [];
+
+    // Extract from run results
+    for (const r of runners) {
+      if (REQUIRED_SUITES.includes(r.test_type)) {
+        const st = String(r.status).toUpperCase();
+        if (st === "FAILED" || st === "BLOCKED") {
+          const reason = r.blocked_reason || (r.failures && r.failures[0] ? (r.failures[0].error || r.failures[0].message) : "Failed");
+          reasons.push({ suite: r.test_type, status: st, reason: reason });
+        }
+      } else if (r.test_type !== "api_connectivity") {
+        const st = String(r.status).toUpperCase();
+        if (st === "FAILED" || st === "BLOCKED") {
+          const reason = r.blocked_reason || "See details";
+          warnings.push({ suite: r.test_type, status: st, reason: reason });
+        }
+      }
+    }
+
+    if (reasons.length > 0) {
+      html += '<div class="section"><div class="section-title">Blocking Reasons</div>';
+      for (const r of reasons) {
+        html += '<div class="finding-card">';
+        html += '<h4>' + statusBadge(r.status) + " " + esc(r.suite) + "</h4>";
+        html += '<p>' + esc(r.reason) + "</p>";
+        html += "</div>";
+      }
+      html += "</div>";
+    }
+
+    if (warnings.length > 0) {
+      html += '<div class="section"><div class="section-title">Informational Warnings</div>';
+      for (const w of warnings) {
+        html += '<div class="finding-card">';
+        html += '<h4>' + statusBadge(w.status) + " " + esc(w.suite) + "</h4>";
+        html += '<p>' + esc(w.reason) + "</p>";
+        html += "</div>";
+      }
+      html += "</div>";
+    }
+
+    $app.innerHTML = html;
+  }
+
+  function renderHistory() {
+    if (runs.length === 0) {
+      $app.innerHTML = emptyState("No test run history", "Run tests to generate history:", "python3 -m orchestration.cli test");
+      return;
+    }
+
+    let html = '<div class="section-title">Recent Runs (' + runs.length + ")</div>";
+    html += '<div class="table-wrap"><table><thead><tr>';
+    html += "<th>Run ID</th><th>Time</th><th>Status</th><th>Total</th><th>Passed</th><th>Failed</th><th>Blocked</th><th>Pass Rate</th><th>Duration</th>";
+    html += "</tr></thead><tbody>";
+
+    for (const r of runs) {
+      const isLatest = currentRun && r.test_run_id === currentRun.test_run_id;
+      html += "<tr" + (isLatest ? ' style="background:var(--bg-hover)"' : "") + ">";
+      html += '<td class="clickable mono" onclick="window._openRun(\'' + esc(r.test_run_id) + "')\">";
+      html += esc(r.test_run_id.substring(0, 30));
+      if (isLatest) html += ' <span style="font-size:10px;color:var(--accent)">(latest)</span>';
+      html += "</td>";
+      html += "<td>" + esc(formatTime(r.started_at)) + "</td>";
+      html += "<td>" + gateBadge(r.overall_status) + "</td>";
+      html += '<td class="num">' + r.total_test_cases + "</td>";
+      html += '<td class="num text-pass">' + r.passed_test_cases + "</td>";
+      html += '<td class="num' + (r.failed_test_cases > 0 ? " text-fail" : "") + '">' + r.failed_test_cases + "</td>";
+      html += '<td class="num' + (r.blocked_test_cases > 0 ? " text-blocked" : "") + '">' + r.blocked_test_cases + "</td>";
+      html += '<td class="num">' + (r.pass_rate || 0).toFixed(1) + "%</td>";
+      html += '<td class="num">' + formatDuration(r.total_duration_ms) + "</td>";
+      html += "</tr>";
+    }
+
+    html += "</tbody></table></div>";
+    $app.innerHTML = html;
+  }
+
+  function renderFindings() {
+    if (!currentRun) {
+      $app.innerHTML = emptyState("No findings data", "Run the test suite:", "python3 -m orchestration.cli test");
+      return;
+    }
+
+    const cases = getAllTestCases(currentRun);
+    const failed = cases.filter(c => status(c) === "FAILED");
+    const blocked = cases.filter(c => status(c) === "BLOCKED");
+
+    let html = "";
+
+    if (failed.length === 0 && blocked.length === 0) {
+      html += '<div class="empty-state"><h3>No open findings</h3>';
+      html += "<p>All executed tests passed. Blocked tests (if any) are due to missing prerequisites, not failures.</p></div>";
+      $app.innerHTML = html;
+      return;
+    }
+
+    if (failed.length > 0) {
+      html += '<div class="section"><div class="section-title">Failed Tests (' + failed.length + ")</div>";
+      for (const tc of failed) {
+        html += '<div class="finding-card">';
+        html += '<h4><code>' + esc(tc.test_case_id) + "</code> " + esc(tc.test_name) + "</h4>";
+        html += '<p><span class="label">Pillar:</span> ' + esc(tc.test_pillar) + "</p>";
+        html += '<p><span class="label">Failure:</span> ' + esc(tc.failure_reason || tc.error || "Assertion failure") + "</p>";
+        if (tc.expected) html += '<p><span class="label">Expected:</span> ' + esc(tc.expected) + "</p>";
+        if (tc.actual) html += '<p><span class="label">Actual:</span> ' + esc(tc.actual) + "</p>";
+        html += '<p><span class="label">Duration:</span> ' + esc(formatDuration(tc.duration_ms)) + "</p>";
+        if (tc.required_action) html += '<p><span class="label">Action:</span> ' + esc(tc.required_action) + "</p>";
+        html += "</div>";
+      }
+      html += "</div>";
+    }
+
+    if (blocked.length > 0) {
+      html += '<div class="section"><div class="section-title">Blocked Tests (' + blocked.length + ")</div>";
+      for (const tc of blocked) {
+        html += '<div class="finding-card">';
+        html += '<h4><code>' + esc(tc.test_case_id) + "</code> " + esc(tc.test_name) + "</h4>";
+        html += '<p><span class="label">Pillar:</span> ' + esc(tc.test_pillar) + "</p>";
+        html += '<p><span class="label">Blocking dependency:</span> ' + esc(tc.blocking_dependency || "External prerequisite") + "</p>";
+        const missing = tc.missing_configuration || tc.exact_missing_configuration || tc.exact_missing_config || tc.error;
+        if (missing) html += '<p><span class="label">Missing:</span> ' + esc(missing) + "</p>";
+        if (tc.required_remediation) html += '<p><span class="label">Remediation:</span> ' + esc(tc.required_remediation) + "</p>";
+        html += "</div>";
+      }
+      html += "</div>";
+    }
+
+    $app.innerHTML = html;
+  }
+
+  async function renderDetail() {
+    $app.innerHTML = '<div class="loading"><div class="spinner"></div><br>Loading run detail...</div>';
+
+    const run = await fetchRunDetail(detailRunId);
+    if (!run) {
+      $app.innerHTML = '<button class="detail-back" onclick="window._closeDetail()">&larr; Back</button>' +
+        emptyState("Run not found", "The run " + detailRunId + " could not be loaded.");
+      return;
+    }
+
+    const s = run.summary || run.test_run_summary || {};
+    const cases = getAllTestCases(run);
+    const runners = getRunnerResults(run);
+
+    let html = '<button class="detail-back" onclick="window._closeDetail()">&larr; Back to ' + esc(currentView) + "</button>";
+
+    html += '<div class="detail-header">';
+    html += "<h2>" + esc(run.test_run_id) + "</h2>";
+    html += '<div class="detail-meta">';
+    html += "<span>" + gateBadge(run.overall_status) + "</span>";
+    html += "<span>Started: " + esc(formatTime(run.started_at)) + "</span>";
+    html += "<span>Duration: " + esc(formatDuration(s.total_duration_ms || 0)) + "</span>";
+    html += "<span>Mode: " + esc(run.execution_mode || "sequential") + "</span>";
+    html += "</div></div>";
+
+    html += '<div class="cards">';
+    html += metricCard("Total", s.total_test_cases || 0);
+    html += metricCard("Passed", s.passed_test_cases || 0, "", "text-pass");
+    html += metricCard("Failed", s.failed_test_cases || 0, "", s.failed_test_cases > 0 ? "text-fail" : "");
+    html += metricCard("Blocked", s.blocked_test_cases || 0, "", s.blocked_test_cases > 0 ? "text-blocked" : "");
+    html += metricCard("Pass Rate", (s.pass_rate || 0).toFixed(1) + "%");
+    html += "</div>";
+
+    // Test case table
+    html += '<div class="toolbar">';
+    html += '<input type="text" class="search-input" placeholder="Search test ID or name..." id="detail-search" value="' + esc(searchQuery) + '">';
+    html += filterButton("all", "All");
+    html += filterButton("PASSED", "Passed");
+    html += filterButton("FAILED", "Failed");
+    html += filterButton("BLOCKED", "Blocked");
+    html += "</div>";
+
+    const filtered = cases.filter(filterCase);
+
+    html += '<div class="table-wrap"><table><thead><tr>';
+    html += "<th>ID</th><th>Test Name</th><th>Pillar</th><th>Status</th><th>Duration</th><th>Error / Details</th>";
+    html += "</tr></thead><tbody>";
+
+    if (filtered.length === 0) {
+      html += '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No matching test cases</td></tr>';
+    }
+
+    for (const tc of filtered) {
+      const st = status(tc);
+      const dur = (st === "PASSED" || st === "FAILED") ? formatDuration(tc.duration_ms) : "—";
+      const err = tc.failure_reason || tc.error || tc.details || tc.description || "";
+      html += "<tr>";
+      html += '<td class="mono">' + esc(tc.test_case_id) + "</td>";
+      html += "<td>" + esc(tc.test_name) + "</td>";
+      html += "<td>" + esc(tc.test_pillar || "") + "</td>";
+      html += "<td>" + statusBadge(st) + "</td>";
+      html += '<td class="num">' + esc(dur) + "</td>";
+      html += "<td>" + esc(err.length > 100 ? err.substring(0, 97) + "..." : err) + "</td>";
+      html += "</tr>";
+    }
+
+    html += "</tbody></table></div>";
+
+    // Evidence files
+    html += '<div class="section"><div class="section-title">Evidence Files</div>';
+    html += '<div class="card" style="padding:12px 16px;font-size:12px;font-family:var(--mono)">';
+    html += "Evidence directory: results/evidence/" + esc(run.test_run_id) + "/";
+    html += "</div></div>";
+
+    $app.innerHTML = html;
+    bindDetailSearch();
+  }
+
+  // --- Component helpers ---
+  function metricCard(label, value, sub, colorClass) {
+    let html = '<div class="card">';
+    html += '<div class="card-label">' + esc(label) + "</div>";
+    html += '<div class="card-value' + (colorClass ? " " + colorClass : "") + '">' + esc(String(value)) + "</div>";
+    if (sub) html += '<div class="card-sub">' + esc(sub) + "</div>";
+    html += "</div>";
+    return html;
+  }
+
+  function filterButton(value, label) {
+    const active = statusFilter === value ? " active" : "";
+    return '<button class="filter-btn' + active + '" onclick="window._setStatusFilter(\'' + value + "')\">" + esc(label) + "</button>";
+  }
+
+  function emptyState(title, desc, cmd) {
+    let html = '<div class="empty-state"><h3>' + esc(title) + "</h3>";
+    html += "<p>" + esc(desc) + "</p>";
+    if (cmd) html += "<code>" + esc(cmd) + "</code>";
+    html += "</div>";
+    return html;
+  }
+
+  function pillarSummaryTable(run) {
+    const pillarCases = getPillarCases(run);
+    const runners = getRunnerResults(run);
+
+    let html = '<div class="table-wrap">';
+    html += '<div class="table-title">Pillar Breakdown</div>';
+    html += "<table><thead><tr>";
+    html += "<th>Pillar</th><th>Runner(s)</th><th>Status</th><th>Total</th><th>Passed</th><th>Failed</th><th>Blocked</th><th>Duration</th>";
+    html += "</tr></thead><tbody>";
+
+    for (const pillar of PILLAR_ORDER) {
+      const cases = pillarCases[pillar] || [];
+      const passed = cases.filter(c => status(c) === "PASSED").length;
+      const failed = cases.filter(c => status(c) === "FAILED").length;
+      const blocked = cases.filter(c => status(c) === "BLOCKED").length;
+
+      const runnerNames = [];
+      let totalDur = 0;
+      let pillarStatus = "PASSED";
+      for (const r of runners) {
+        const rp = PILLAR_MAP[r.test_type];
+        if (rp === pillar) {
+          runnerNames.push(r.test_type);
+          totalDur += r.duration_ms || 0;
+          const rs = String(r.status).toUpperCase();
+          if (rs === "FAILED") pillarStatus = "FAILED";
+          else if (rs === "BLOCKED" && pillarStatus !== "FAILED") pillarStatus = "BLOCKED";
+        }
+      }
+
+      if (cases.length === 0 && runnerNames.length === 0) {
+        pillarStatus = "PENDING";
+      }
+
+      html += "<tr>";
+      html += "<td><strong>" + esc(pillar) + "</strong></td>";
+      html += '<td class="mono" style="font-size:11px">' + esc(runnerNames.join(", ")) + "</td>";
+      html += "<td>" + statusBadge(pillarStatus) + "</td>";
+      html += '<td class="num">' + cases.length + "</td>";
+      html += '<td class="num text-pass">' + passed + "</td>";
+      html += '<td class="num' + (failed > 0 ? " text-fail" : "") + '">' + failed + "</td>";
+      html += '<td class="num' + (blocked > 0 ? " text-blocked" : "") + '">' + blocked + "</td>";
+      html += '<td class="num">' + formatDuration(totalDur) + "</td>";
+      html += "</tr>";
+    }
+
+    html += "</tbody></table></div>";
+    return html;
+  }
+
+  // --- Filters ---
+  function status(tc) {
+    const s = tc.execution_status;
+    if (typeof s === "string") return s.toUpperCase();
+    if (s && s.value) return s.value.toUpperCase();
+    return "UNKNOWN";
+  }
+
+  function filterCase(tc) {
+    if (statusFilter !== "all" && status(tc) !== statusFilter) return false;
+    if (pillarFilter !== "all" && tc.test_pillar !== pillarFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const id = (tc.test_case_id || "").toLowerCase();
+      const name = (tc.test_name || "").toLowerCase();
+      if (!id.includes(q) && !name.includes(q)) return false;
+    }
+    return true;
+  }
+
+  function bindPillarSearch() {
+    const el = document.getElementById("pillar-search");
+    if (el) {
+      el.addEventListener("input", function() {
+        searchQuery = this.value;
+        renderPillars();
+      });
+    }
+  }
+
+  function bindDetailSearch() {
+    const el = document.getElementById("detail-search");
+    if (el) {
+      el.addEventListener("input", function() {
+        searchQuery = this.value;
+        renderDetail();
+      });
+    }
+  }
+
+  // --- Global actions ---
+  window._openRun = function(runId) {
+    detailRunId = runId;
+    searchQuery = "";
+    statusFilter = "all";
+    render();
+  };
+
+  window._closeDetail = function() {
+    detailRunId = null;
+    searchQuery = "";
+    statusFilter = "all";
+    render();
+  };
+
+  window._setStatusFilter = function(f) {
+    statusFilter = f;
+    render();
+  };
+
+  // --- Tab navigation ---
+  document.getElementById("tabs").addEventListener("click", function(e) {
+    if (e.target.classList.contains("tab")) {
+      currentView = e.target.dataset.view;
+      detailRunId = null;
+      searchQuery = "";
+      statusFilter = "all";
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      e.target.classList.add("active");
+      render();
+    }
+  });
+
+  // --- Init ---
+  async function init() {
+    runs = await fetchRuns();
+
+    if (runs.length > 0) {
+      // Find the latest run with the most test cases (prefer full runs over unit-test stubs)
+      let best = runs[0];
+      for (const r of runs) {
+        if (r.total_test_cases > best.total_test_cases) {
+          best = r;
+          break;
+        }
+      }
+      const detail = await fetchRunDetail(best.test_run_id);
+      if (detail) currentRun = detail;
+
+      $meta.textContent = runs.length + " runs | Latest: " + formatTime(runs[0].started_at);
+    } else {
+      $meta.textContent = "No test runs found";
+    }
+
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

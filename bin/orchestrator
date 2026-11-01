@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Run the orchestration CLI from anywhere:
+#   bin/orchestrator preflight
+#   bin/orchestrator test --pillar api
+#
+# Settings come from <repo>/.env (copy env.example); exported variables win.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+cd "$REPO_ROOT"
+exec python3 -m orchestration "$@"
